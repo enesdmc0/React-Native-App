@@ -1,19 +1,39 @@
-import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "../../constants";
 import FormField from "../components/FormField";
 import CustomButton from "../components/CustomButton";
 import { Link } from "expo-router";
+import { signIn } from "../../lib/appwrite";
+import { useGlobalContext } from "../../context/GlobalProvider";
 const SignIn = () => {
+  const {setUser, setIsLogged} = useGlobalContext();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
 
-  const submit = () => {};
+  const submit = async () => {
+    if (form.email === "" || form.password === "") {
+      Alert.alert("Error", "Please fill in all fields");
+    }
 
+    setIsSubmitting(true);
+
+    try {
+      await signIn(form.email, form.password);
+      const result = await getCurrentUser();
+      setUser(result);
+      setIsLogged(true);
+      router.replace("/home");
+    } catch (e) {
+      Alert.alert("Error", e.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
@@ -51,7 +71,12 @@ const SignIn = () => {
             <Text className="text-lg text-gray-100 font-pregular">
               Don't have an account?
             </Text>
-            <Link className="text-lg font-psemiBold text-secondary" href="/sign-up">Signup</Link>
+            <Link
+              className="text-lg font-psemiBold text-secondary"
+              href="/sign-up"
+            >
+              Signup
+            </Link>
           </View>
         </View>
       </ScrollView>
@@ -60,4 +85,3 @@ const SignIn = () => {
 };
 
 export default SignIn;
-
